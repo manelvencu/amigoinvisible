@@ -71,6 +71,7 @@ footer{border-top:1px solid #dabb7136;padding:23px 0 32px;display:flex;flex-wrap
 @media(max-width:660px){.shell{padding:0 17px}nav{height:66px}.brand{font-size:10px;letter-spacing:1px}.nav-label{font-size:8px;letter-spacing:.5px}.scene{height:225px;object-fit:cover}h1{font-size:clamp(37px,10.1vw,57px)}.eyebrow{font-size:8px;letter-spacing:1.5px}.mission{padding-top:10px}.card{height:385px}.face{padding:17px}.sub{font-size:13px}.card-caption{font-size:9px}.personal{font-size:16px}.note{font-size:13px}.name{font-size:clamp(37px,10vw,57px)}.closing small{letter-spacing:1px;font-size:8px}footer{font-size:9px;letter-spacing:.7px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.card.open .inner{transform:rotateY(180deg)}}
 </style>
+<link rel="stylesheet" href="./flow.css">
 </head>
 <body>
 <canvas id="fx" aria-hidden="true"></canvas>
@@ -130,52 +131,80 @@ footer{border-top:1px solid #dabb7136;padding:23px 0 32px;display:flex;flex-wrap
 <div class="divider" aria-hidden="true">✧</div>
 </section>
 <section class="mission" aria-labelledby="missionTitle">
-<p class="kicker">OPERACIÓN · REGALO SECRETO</p>
-<h2 id="missionTitle">Una identidad espera ser descubierta</h2>
-<p class="sub">Has recibido una misión de Navidad. Abre el regalo y descubre a quién deberás sorprender. ¡Que nadie más conozca el secreto!</p>
-<div id="card" class="card">
-<div class="inner">
-<div class="face front">
-<div class="gift" aria-hidden="true"><div class="gift-box"></div><div class="gift-lid"></div><div class="bow"></div><div class="bow other"></div></div>
-<p class="card-caption">TU MISIÓN SECRETA TE ESPERA</p>
-<button id="open" class="action" type="button">ABRIR MI REGALO ✦</button>
-<p class="hint">Prepárate para descubrir el nombre...</p>
-</div>
-<div class="face back" aria-live="polite">
-<div class="big-star" aria-hidden="true">✦</div><p class="revealed-tag">IDENTIDAD REVELADA</p>
-<p class="personal" id="greeting">Tu misión es sorprender a...</p>
-<h3 class="name" id="recipient">—</h3>
-<div class="line"></div><p class="note">Solo tú debes conocer este nombre. Piensa en un detalle especial y deja que la magia haga el resto.</p>
-<button id="hide" class="quiet" type="button">✧ Ocultar el nombre</button>
-</div></div></div>
-<p id="status" role="status"></p>
-<div class="secrecy"><div class="lock" aria-hidden="true">♢</div><div><strong>Promesa de discreción</strong><p>Ni pistas, ni confesiones accidentales, ni capturas compartidas. El secreto forma parte de la magia de la Navidad.</p></div></div>
+  <p class="kicker">OPERACIÓN · REGALO SECRETO</p>
+
+  <div id="setupPanel" class="flow-panel" hidden>
+    <div class="flow-ornament" aria-hidden="true">✦</div>
+    <p class="kicker">PRIMER PASO · ADMINISTRADOR</p>
+    <h2 id="missionTitle">Prepara el Amigo Invisible</h2>
+    <p>Escribe los nombres de todos los participantes. El sorteo se realizará antes de comenzar, para que nadie repita destinatario ni se toque a sí mismo.</p>
+    <label class="flow-label" for="namesInput">Lista de participantes (uno por línea)</label>
+    <textarea id="namesInput" class="flow-input" rows="7" maxlength="6480" placeholder="Ana&#10;Carlos&#10;Marta&#10;Pablo" spellcheck="false" autocomplete="off"></textarea>
+    <div id="setupCount" class="flow-counter">0 nombres introducidos</div>
+    <button id="startBtn" type="button" class="flow-primary">CONFIRMAR Y COMENZAR EL SORTEO</button>
+    <p id="setupError" class="flow-error" role="alert"></p>
+    <p id="storageWarning" class="flow-error" role="alert" hidden>Se han detectado datos guardados que no se pueden recuperar. Pulsa «Reiniciar sorteo» para empezar de nuevo.</p>
+  </div>
+
+  <div id="selectPanel" class="flow-panel" hidden>
+    <p class="kicker">TU TURNO · IDENTIDAD SECRETA</p>
+    <h2>¿Quién se acerca al regalo?</h2>
+    <p>Selecciona tu nombre. Los participantes que ya han descubierto su asignación no volverán a aparecer.</p>
+    <p id="progressCount" class="flow-count" aria-live="polite"></p>
+    <div class="flow-progress" role="presentation"><div id="progressBar" class="flow-progress-fill"></div></div>
+    <label class="flow-label" for="participantSelect">Soy...</label>
+    <select id="participantSelect" class="flow-input"><option value="">Selecciona tu nombre</option></select>
+    <div class="flow-actions"><button id="chooseBtn" type="button" class="flow-primary" disabled>CONTINUAR</button></div>
+    <p id="chooseError" class="flow-error" role="alert"></p>
+  </div>
+
+  <div id="privacyPanel" class="flow-panel" hidden>
+    <div class="privacy-emblem" aria-hidden="true">◈</div>
+    <div id="privacyName" class="privacy-person"></div>
+    <p class="kicker">ANTES DE DESCUBRIR EL SECRETO</p>
+    <h3 class="privacy-question">¿Estás solo, sin ninguna mirada indiscreta?</h3>
+    <p class="privacy-help">Asegúrate de que nadie pueda ver tu pantalla. Solo tú debes conocer quién será tu Amigo Invisible.</p>
+    <div class="flow-actions">
+      <button id="notAloneBtn" type="button" class="flow-secondary">NO, ESPERAR</button>
+      <button id="aloneBtn" type="button" class="flow-primary">SÍ, ESTOY SOLO</button>
+    </div>
+  </div>
+
+  <div id="giftPanel" class="flow-panel" hidden>
+    <p class="kicker">MISIÓN CONFIDENCIAL</p>
+    <h2>El secreto está dentro de este regalo</h2>
+    <div class="gift flow-gift" aria-hidden="true">
+      <div class="gift-box"></div><div class="gift-lid"></div><div class="bow"></div><div class="bow other"></div>
+    </div>
+    <button id="revealBtn" type="button" class="flow-primary">ABRIR MI REGALO ✦</button>
+    <button id="cancelRevealBtn" type="button" class="flow-link">Volver sin revelar</button>
+    <p id="giftError" class="flow-error" role="alert"></p>
+  </div>
+
+  <div id="resultPanel" class="flow-panel" hidden aria-live="polite">
+    <div class="finish-star" aria-hidden="true">✦</div>
+    <p class="kicker">IDENTIDAD REVELADA</p>
+    <p id="resultFor" class="flow-muted"></p>
+    <div id="recipientName" class="flow-identity"></div>
+    <p class="result-warning">¡Guarda el secreto! Ya has completado tu turno y no podrás repetirlo.</p>
+    <button id="nextBtn" type="button" class="flow-primary">OCULTAR Y PASAR EL DISPOSITIVO</button>
+  </div>
+
+  <div id="finishPanel" class="flow-panel flow-finish" hidden>
+    <div class="finish-star" aria-hidden="true">✦ ✧ ✦</div>
+    <p class="kicker">MISIÓN CUMPLIDA</p>
+    <h2>¡El Amigo Invisible está listo!</h2>
+    <p id="finishCount"></p>
+    <p>Todos tienen a alguien a quien sorprender. Ahora solo queda preparar los regalos y mantener la magia hasta el gran día.</p>
+  </div>
+
+  <div id="resetRow" class="flow-reset" hidden><button type="button" class="flow-link" id="resetBtn">Reiniciar sorteo (administrador)</button></div>
+  <p id="globalError" class="flow-error" role="alert"></p>
+  <div class="flow-notice"><strong>Un solo dispositivo.</strong> El sorteo se guarda únicamente en este navegador. No borres los datos de navegación ni cambies de dispositivo hasta terminar. El nombre seleccionado no verifica la identidad de la persona: respetad los turnos.</div>
 </section>
 <section class="closing"><div class="snow">✦ ✧ ✦</div><p>El misterio continúa hasta el intercambio de regalos...</p><small>QUE LA MAGIA DE LA NAVIDAD TE ACOMPAÑE</small></section>
 </main>
-<footer><span>AMIGO INVISIBLE · NAVIDAD 2026</span><span class="demo">DEMOSTRACIÓN · NOMBRES FICTICIOS</span></footer>
+<footer><span>AMIGO INVISIBLE · NAVIDAD 2026</span><span class="demo">SORTEO PRIVADO EN ESTE DISPOSITIVO</span></footer>
 </div>
-<script>
-(function(){
-"use strict";
-// DEMOSTRACIÓN: NO guardar asignaciones, emails ni tokens reales en GitHub Pages.
-// En producción, la identidad se consultará a un servicio privado.
-var card=document.getElementById("card"),open=document.getElementById("open"),hide=document.getElementById("hide"),status=document.getElementById("status");
-function demoAssignment(){return {participant:"Carlos",recipient:"Marta"};}
-function magic(){
- if(window.matchMedia("(prefers-reduced-motion: reduce)").matches)return;
- var canvas=document.getElementById("fx"),ctx=canvas.getContext("2d");if(!ctx)return;
- var w=window.innerWidth,h=window.innerHeight,dpr=Math.min(window.devicePixelRatio||1,2);
- canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
- var bounds=card.getBoundingClientRect(),x=bounds.left+bounds.width/2,y=bounds.top+bounds.height/2;
- var colors=["#f4c987","#fff4cf","#ffffff","#b88a48"],bits=[];
- for(var i=0;i<110;i++)bits.push({x:x,y:y,dx:(Math.random()-.5)*14,dy:(Math.random()-.8)*13,r:Math.random()*6,spin:(Math.random()-.5)*.2,a:Math.random()*6.28,col:colors[Math.floor(Math.random()*colors.length)]});
- var start=performance.now();
- function draw(t){var elapsed=t-start;ctx.clearRect(0,0,w,h);bits.forEach(function(b){b.x+=b.dx;b.y+=b.dy;b.dy+=.13;b.dx*=.992;b.a+=b.spin;ctx.save();ctx.translate(b.x,b.y);ctx.rotate(b.a);ctx.globalAlpha=Math.min(1,Math.max(0,(1800-elapsed)/400));ctx.fillStyle=b.col;ctx.fillRect(-b.r/2,-b.r/2,Math.max(2,b.r),Math.max(3,b.r*1.6));ctx.restore();});if(elapsed<1800)requestAnimationFrame(draw);else ctx.clearRect(0,0,w,h);}
- requestAnimationFrame(draw);
-}
-open.addEventListener("click",function(){status.textContent="";var data=demoAssignment();document.getElementById("greeting").textContent=data.participant+", tu misión es sorprender a...";document.getElementById("recipient").textContent=data.recipient;card.classList.add("open");magic();setTimeout(function(){hide.focus({preventScroll:true});},1100);});
-hide.addEventListener("click",function(){card.classList.remove("open");setTimeout(function(){open.focus({preventScroll:true});},1100);});
-})();
-</script>
+<script defer src="./flow.js"></script>
 </body></html>
