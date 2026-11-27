@@ -7,6 +7,7 @@
   let game = null;
   let selectedIndex = null;
   let corruptStorage = false;
+  let hideResultTimer = null;
 
   function normalizeName(name) {
     return name.trim().replace(/\s+/g, ' ');
@@ -101,7 +102,17 @@
     $('setupCount').textContent = `${n} ${n === 1 ? 'nombre introducido' : 'nombres introducidos'}`;
   }
 
+  function hideResult() {
+    clearTimeout(hideResultTimer);
+    hideResultTimer = null;
+    $('recipientName').textContent = '';
+    $('resultFor').textContent = '';
+    if (game) showSelect();
+  }
+
   function showSelect() {
+    clearTimeout(hideResultTimer);
+    hideResultTimer = null;
     selectedIndex = null;
     $('recipientName').textContent = '';
     $('resultFor').textContent = '';
@@ -172,6 +183,7 @@
     $('resultFor').textContent = `${game.names[selectedIndex]}, tienes una misión muy especial:`;
     $('recipientName').textContent = game.names[game.assignments[selectedIndex]];
     showPanel('resultPanel');
+    hideResultTimer = setTimeout(hideResult, 5000);
     runConfetti();
   }
 
@@ -217,6 +229,8 @@
       error('globalError', 'No se han podido borrar los datos del navegador.');
       return;
     }
+    clearTimeout(hideResultTimer);
+    hideResultTimer = null;
     game = null;
     selectedIndex = null;
     corruptStorage = false;
@@ -236,7 +250,11 @@
   $('aloneBtn').addEventListener('click', () => { $('giftError').textContent = ''; showPanel('giftPanel'); });
   $('cancelRevealBtn').addEventListener('click', showSelect);
   $('revealBtn').addEventListener('click', revealRecipient);
-  $('nextBtn').addEventListener('click', showSelect);
+  $('nextBtn').addEventListener('click', hideResult);
+  document.addEventListener('visibilitychange', () => {
+    // Si se bloquea el móvil o se cambia de pestaña, no dejar el nombre visible.
+    if (document.hidden && hideResultTimer !== null) hideResult();
+  });
   $('resetBtn').addEventListener('click', resetGame);
 
   game = restore();
